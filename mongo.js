@@ -24,7 +24,23 @@ const contact = new Contact({
   number: process.argv[4],
 });
 
-contact.save().then((result) => {
-  console.log(`added ${result.name} number ${result.number} to phonebook`);
+if (process.argv.length === 4) {
+  console.log("Please include phone number");
+  process.exit(1);
+}
+
+if (process.argv.length === 5) {
+  contact.save().then((result) => {
+    console.log(`added ${result.name} number ${result.number} to phonebook`);
+    mongoose.connection.close();
+    process.exit(1);
+  });
+}
+
+Contact.find({}).then((result) => {
+  console.log("Phonebook:");
+  result.forEach((contact) => {
+    console.log(`${contact.name} ${contact.number}`);
+  });
   mongoose.connection.close();
 });
