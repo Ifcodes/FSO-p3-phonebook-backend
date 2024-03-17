@@ -20,8 +20,8 @@ const phonebookSchema = mongoose.Schema({
 const Contact = mongoose.model("Contact", phonebookSchema);
 
 const contact = new Contact({
-  name: "Desmond",
-  number: "888-333-3332",
+  name: process.argv[3],
+  number: process.argv[4],
 });
 
 contact.save().then((result) => {
