@@ -49,11 +49,11 @@ let persons = [
   },
 ];
 
-const generateId = () => {
-  const maxId = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
+// const generateId = () => {
+//   const maxId = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
 
-  return maxId + 1;
-};
+//   return maxId + 1;
+// };
 
 app.get("/api/persons", (req, res) => {
   Phonebook.find({}).then((result) => res.json(result));
@@ -88,33 +88,45 @@ app.delete("/api/persons/:id", (req, res) => {
 });
 
 app.post("/api/persons", (req, res) => {
-  const body = {
-    ...req.body,
-    id: generateId(),
-  };
+  const body = req.body;
 
-  const nameExist = persons.find((p) => p.name === body.name);
-
-  if (!body.name) {
-    return res.status(400).send({
-      error: "name is required",
-    });
+  if (!body.name || !body.number) {
+    res.status(400).json({ error: "Contact name and number is required." });
   }
 
-  if (!body.number) {
-    return res.status(400).send({
-      error: "number is required",
-    });
-  }
+  const contact = new Phonebook({
+    name: body.name,
+    number: body.number,
+  });
 
-  if (nameExist) {
-    return res.status(400).send({
-      error: "name already exists",
-    });
-  }
+  contact.save().then((savedContact) => res.json(savedContact));
+  // const body = {
+  //   ...req.body,
+  //   id: generateId(),
+  // };
 
-  persons = persons.concat(body);
-  res.json(body);
+  // const nameExist = persons.find((p) => p.name === body.name);
+
+  // if (!body.name) {
+  //   return res.status(400).send({
+  //     error: "name is required",
+  //   });
+  // }
+
+  // if (!body.number) {
+  //   return res.status(400).send({
+  //     error: "number is required",
+  //   });
+  // }
+
+  // if (nameExist) {
+  //   return res.status(400).send({
+  //     error: "name already exists",
+  //   });
+  // }
+
+  // persons = persons.concat(body);
+  // res.json(body);
 });
 
 const PORT = process.env.PORT;
