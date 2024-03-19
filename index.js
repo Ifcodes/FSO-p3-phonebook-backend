@@ -60,34 +60,45 @@ app.get("/api/persons", (req, res) => {
 });
 
 app.get("/info", (req, res) => {
-  res.send(
-    `<div> Phonebook has info for ${
-      persons.length
-    } people <p>${new Date().toString()}</p></div>`
+  Phonebook.find({}).then((contacts) =>
+    res.send(
+      `<div> Phonebook has info for ${
+        contacts.length
+      } people <p>${new Date().toString()}</p></div>`
+    )
   );
 });
 
-app.get("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = persons.find((p) => p.id === id);
+app.get("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
 
-  if (!person) {
-    return res.status(404).send({
-      error: "person not found",
+  Phonebook.findById(id)
+    .then((result) => {
+      if (!result) {
+        return res.status(404).send({ error: "Contact not found." });
+      }
+
+      res.json(result);
+    })
+    .catch((err) => next(err));
+});
+
+app.delete("/api/persons/:id", (req, res, next) => {
+  const id = req.params.id;
+  Phonebook.findByIdAndDelete(id)
+    .then((result) => {
+      if (result) {
+        res.status(204).end();
+      } else {
+        res.status(404).send({ error: "Contact not found" });
+      }
+    })
+    .catch((err) => {
+      next(err);
     });
-  }
-
-  res.json(person);
 });
 
-app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  persons = persons.filter((p) => p.id !== id);
-
-  res.status(204).end();
-});
-
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
 
   if (!body.name || !body.number) {
@@ -99,7 +110,10 @@ app.post("/api/persons", (req, res) => {
     number: body.number,
   });
 
-  contact.save().then((savedContact) => res.json(savedContact));
+  contact
+    .save()
+    .then((savedContact) => res.json(savedContact))
+    .catch((err) => next(err));
   // const body = {
   //   ...req.body,
   //   id: generateId(),
@@ -128,6 +142,40 @@ app.post("/api/persons", (req, res) => {
   // persons = persons.concat(body);
   // res.json(body);
 });
+
+app.put("/api/persons/:id", (req, res, next) => {
+  const data = {
+    name: req.body.name,
+    number: req.body.number,
+  };
+  Phonebook.findByIdAndUpdate(req.params.id, data, { new: true })
+    .then((updatedContact) => {
+      if (updatedContact) {
+        res.json(updatedContact);
+      } else {
+        res.status(404).send({ error: "Contact not found" });
+      }
+    })
+    .catch((err) => next(err));
+});
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ error: "Unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
+
+const errorHandler = (err, req, res, next) => {
+  console.log(err.message);
+
+  if (err.name === "CastError") {
+    res.status(500).send({ error: "Invalid Id" });
+  }
+
+  next(err);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 
