@@ -110,33 +110,6 @@ app.post("/api/persons", (req, res, next) => {
     .save()
     .then((savedContact) => res.json(savedContact))
     .catch((err) => next(err));
-  // const body = {
-  //   ...req.body,
-  //   id: generateId(),
-  // };
-
-  // const nameExist = persons.find((p) => p.name === body.name);
-
-  // if (!body.name) {
-  //   return res.status(400).send({
-  //     error: "name is required",
-  //   });
-  // }
-
-  // if (!body.number) {
-  //   return res.status(400).send({
-  //     error: "number is required",
-  //   });
-  // }
-
-  // if (nameExist) {
-  //   return res.status(400).send({
-  //     error: "name already exists",
-  //   });
-  // }
-
-  // persons = persons.concat(body);
-  // res.json(body);
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
