@@ -144,7 +144,12 @@ app.put("/api/persons/:id", (req, res, next) => {
     name: req.body.name,
     number: req.body.number,
   };
-  Phonebook.findByIdAndUpdate(req.params.id, data, { new: true })
+
+  Phonebook.findByIdAndUpdate(req.params.id, data, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedContact) => {
       if (updatedContact) {
         res.json(updatedContact);
@@ -165,9 +170,9 @@ const errorHandler = (err, req, res, next) => {
   console.log(err.message);
 
   if (err.name === "CastError") {
-    res.status(500).send({ error: "Invalid Id" });
+    res.status(400).send({ error: "Invalid Id" });
   } else if (err.name === "ValidationError") {
-    res.status(500).send({ err: err.message });
+    res.status(400).send({ err: err.message });
   }
 
   next(err);
